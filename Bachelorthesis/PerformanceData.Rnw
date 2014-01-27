@@ -1,0 +1,143 @@
+<<results='asis', echo=F>>=
+library(xtable)
+library(gplots)
+myEst <- function(x) x$estimate
+myMin <- function(x) x$conf.int[1]
+myMax <- function(x) x$conf.int[2]
+readCsv <- function(folder, file) {
+    return(apply(read.csv(paste0('Resources/Data/', folder, '/', file, '.csv'),
+                          sep=' ', header=FALSE),
+                 1, t.test))
+}
+applyMatrix <- function(A, func, string) {
+    result <- apply(A, 1:2, lapply, func)
+    result <- apply(result, 1:2, unlist)
+    result <- apply(result, 1:2, as.numeric)
+    colnames(result) <- c(paste('100', string),
+                          paste('200', string),
+                          paste('400', string),
+                          paste('800', string))
+    rownames(result) <- c('EScala', 'EsperSubscriber', 'EsperListener', 'CEScalaSeparate', 'CEScalaMerged')
+    return(result)
+}
+
+createTable <- function(est, min, max) {
+    result <- est
+    l <- length(est)
+    for(i in 1:l) {
+        result[i] <- paste0(round(est[i], digits=3), ' \\pm}', round(max[i]-est[i], digits=3))
+    }
+    return(result)
+}
+
+E.SP.EScala <- readCsv('events', 'SP.EScala')
+E.SP.CEScalaSeparate <- readCsv('events', 'SP.CEScalaSeparate')
+E.SP.CEScalaMerged <- readCsv('events', 'SP.CEScalaMerged')
+E.SP.EsperSubscriber <- readCsv('events', 'SP.EsperSubscriber')
+E.SP.EsperListener <- readCsv('events', 'SP.EsperListener')
+E.TP.EScala <- readCsv('events', 'TP.EScala')
+E.TP.CEScalaSeparate <- readCsv('events', 'TP.CEScalaSeparate')
+E.TP.CEScalaMerged <- readCsv('events', 'TP.CEScalaMerged')
+E.TP.EsperSubscriber <- readCsv('events', 'TP.EsperSubscriber')
+E.TP.EsperListener <- readCsv('events', 'TP.EsperListener')
+T.SP.EScala <- readCsv('times', 'SP.EScala')
+T.SP.CEScalaSeparate <- readCsv('times', 'SP.CEScalaSeparate')
+T.SP.CEScalaMerged <- readCsv('times', 'SP.CEScalaMerged')
+T.SP.EsperSubscriber <- readCsv('times', 'SP.EsperSubscriber')
+T.SP.EsperListener <- readCsv('times', 'SP.EsperListener')
+T.TP.EScala <- readCsv('times', 'TP.EScala')
+T.TP.CEScalaSeparate <- readCsv('times', 'TP.CEScalaSeparate')
+T.TP.CEScalaMerged <- readCsv('times', 'TP.CEScalaMerged')
+T.TP.EsperSubscriber <- readCsv('times', 'TP.EsperSubscriber')
+T.TP.EsperListener <- readCsv('times', 'TP.EsperListener')
+
+E.SP.libraries <- rbind(E.SP.EScala,
+                        E.SP.EsperSubscriber,
+                        E.SP.EsperListener,
+                        E.SP.CEScalaSeparate,
+                        E.SP.CEScalaMerged)
+E.TP.libraries <- rbind(E.TP.EScala,
+                        E.TP.EsperSubscriber,
+                        E.TP.EsperListener,
+                        E.TP.CEScalaSeparate,
+                        E.TP.CEScalaMerged)
+T.SP.libraries <- rbind(T.SP.EScala,
+                        T.SP.EsperSubscriber,
+                        T.SP.EsperListener,
+                        T.SP.CEScalaSeparate,
+                        T.SP.CEScalaMerged)
+T.TP.libraries <- rbind(T.TP.EScala,
+                        T.TP.EsperSubscriber,
+                        T.TP.EsperListener,
+                        T.TP.CEScalaSeparate,
+                        T.TP.CEScalaMerged)
+
+E.SP.PerformanceEst <- applyMatrix(E.SP.libraries, myEst, 'events')
+E.SP.PerformanceMin <- applyMatrix(E.SP.libraries, myMin, 'events')
+E.SP.PerformanceMax <- applyMatrix(E.SP.libraries, myMax, 'events')
+
+E.TP.PerformanceEst <- applyMatrix(E.TP.libraries, myEst, 'events')
+E.TP.PerformanceMin <- applyMatrix(E.TP.libraries, myMin, 'events')
+E.TP.PerformanceMax <- applyMatrix(E.TP.libraries, myMax, 'events')
+
+T.SP.PerformanceEst <- applyMatrix(T.SP.libraries, myEst, 'times')
+T.SP.PerformanceMin <- applyMatrix(T.SP.libraries, myMin, 'times')
+T.SP.PerformanceMax <- applyMatrix(T.SP.libraries, myMax, 'times')
+
+T.TP.PerformanceEst <- applyMatrix(T.TP.libraries, myEst, 'times')
+T.TP.PerformanceMin <- applyMatrix(T.TP.libraries, myMin, 'times')
+T.TP.PerformanceMax <- applyMatrix(T.TP.libraries, myMax, 'times')
+
+E.SP.Performance <- createTable(E.SP.PerformanceEst, E.SP.PerformanceMin, E.SP.PerformanceMax)
+E.TP.Performance <- createTable(E.TP.PerformanceEst, E.TP.PerformanceMin, E.TP.PerformanceMax)
+T.SP.Performance <- createTable(T.SP.PerformanceEst, T.SP.PerformanceMin, T.SP.PerformanceMax)
+T.TP.Performance <- createTable(T.TP.PerformanceEst, T.TP.PerformanceMin, T.TP.PerformanceMax)
+
+print(xtable(E.SP.Performance, caption = 'Performances of n events having one property triggered 100 times \\\\ (with 95\\% confidence intervals)', label = 'table:E.SP.Performance'), table.placement = 'tp', booktabs=TRUE, size='\\footnotesize')
+
+print(xtable(E.TP.Performance, caption = 'Performances of n events having two properties triggered 100 times \\\\ (with 95\\% confidence intervals)', label = 'table:E.TP.Performance'), table.placement = 'tp', booktabs=TRUE, size='\\footnotesize')
+
+print(xtable(T.SP.Performance, caption = 'Performances of 100 events having one property triggered n times \\\\ (with 95\\% confidence intervals)', label = 'table:T.SP.Performance'), table.placement = 'tp', booktabs=TRUE, size='\\footnotesize')
+
+print(xtable(T.TP.Performance, caption = 'Performances of 100 events having two properties triggered n times \\\\ (with 95\\% confidence intervals)', label = 'table:T.TP.Performance'), table.placement = 'tp', booktabs=TRUE, size='\\footnotesize')
+@
+
+\clearpage
+
+\begin{figure}[tp]
+<<echo=F, fig.height=4>>=
+barplot2(as.matrix(E.SP.PerformanceEst), plot.ci=TRUE, ci.l=as.matrix(E.SP.PerformanceMin), ci.u=as.matrix(E.SP.PerformanceMax), ylab= 'Time (in ms)', beside=TRUE, col=rev(heat.colors(5)))
+legend('topleft', c('EScala','EsperSubscriber','EsperListener','CEScalaSeparate', 'CEScalaMerged'), cex=0.8, bty='n', fill=rev(heat.colors(5)))
+@
+\caption{Performances of n events having one property triggered 100 times \\ (with 95\% confidence intervals)}
+\label{fig:E.SP.Performance}
+\end{figure}
+
+\begin{figure}[tp]
+<<echo=F, fig.height=4>>=
+barplot2(as.matrix(E.TP.PerformanceEst), plot.ci=TRUE, ci.l=as.matrix(E.TP.PerformanceMin), ci.u=as.matrix(E.TP.PerformanceMax), ylab= 'Time (in ms)', beside=TRUE, col=rev(heat.colors(5)))
+legend('topleft', c('EScala','EsperSubscriber','EsperListener','CEScalaSeparate', 'CEScalaMerged'), cex=0.8, bty='n', fill=rev(heat.colors(5)))
+@
+\caption{Performances of n events having two properties triggered 100 times \\ (with 95\% confidence intervals)}
+\label{fig:E.TP.Performance}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[tp]
+<<echo=F, fig.height=4>>=
+barplot2(as.matrix(T.SP.PerformanceEst), plot.ci=TRUE, ci.l=as.matrix(T.SP.PerformanceMin), ci.u=as.matrix(T.SP.PerformanceMax), ylab= 'Time (in ms)', beside=TRUE, col=rev(heat.colors(5)))
+legend('topleft', c('EScala','EsperSubscriber','EsperListener','CEScalaSeparate', 'CEScalaMerged'), cex=0.8, bty='n', fill=rev(heat.colors(5)))
+@
+\caption{Performances of 100 events having one property triggered n times \\ (with 95\% confidence intervals)}
+\label{fig:T.SP.Performance}
+\end{figure}
+
+\begin{figure}[tp]
+<<echo=F, fig.height=4>>=
+barplot2(as.matrix(T.TP.PerformanceEst), plot.ci=TRUE, ci.l=as.matrix(T.TP.PerformanceMin), ci.u=as.matrix(T.TP.PerformanceMax), ylab= 'Time (in ms)', beside=TRUE, col=rev(heat.colors(5)))
+legend('topleft', c('EScala','EsperSubscriber','EsperListener','CEScalaSeparate', 'CEScalaMerged'), cex=0.8, bty='n', fill=rev(heat.colors(5)))
+@
+\caption{Performances of 100 events having two properties triggered n times \\ (with 95\% confidence intervals)}
+\label{fig:T.TP.Performance}
+\end{figure}

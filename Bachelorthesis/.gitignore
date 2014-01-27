@@ -1,0 +1,12 @@
+# Ignore everything
+/*
+
+# But not these files...
+!old_data.pdf
+!Bachelorthesis.tex
+!PerformanceData.Rnw
+!PerformanceData.tex
+!Bibliography.bib
+!Resources/
+!Sweavel.sty
+!.gitignore
